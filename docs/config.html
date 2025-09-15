@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações & Perfil - MindQuiz</title>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="diario.html">Diário</a>
+      <a href="quiz.html">Quiz</a>
+      <a href="tecnicas.html">Técnicas</a>
+      <a href="resultados.html">Resultados</a>
+      <a href="config.html" class="active">Config</a>
+    </nav>
+  </header>
+  <main>
+    <h1 style="margin-top:0;">Perfil & Preferências</h1>
+    <section class="panel" style="margin-top:var(--spacing-32);">
+      <h2>Perfil</h2>
+      <form id="profile-form">
+        <label>Nome / Apelido<input id="profile-name" type="text" maxlength="40" placeholder="Ex: Ana"></label>
+        <label>Avatar (emoji)<input id="profile-avatar" type="text" maxlength="2" placeholder="😀"></label>
+        <button class="btn" type="submit">Salvar Perfil</button>
+      </form>
+      <div id="profile-preview" style="margin-top:var(--spacing-24);"></div>
+    </section>
+    <section class="panel">
+      <h2>Preferências</h2>
+      <form id="prefs-form">
+        <label>Idioma
+          <select id="pref-lang">
+            <option value="pt">Português</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="pref-high-contrast"> Alto contraste</label>
+        <label><input type="checkbox" id="pref-color-blind"> Modo daltônico</label>
+        <label><input type="checkbox" id="pref-dark-mode"> Modo escuro</label>
+        <label>Horário lembrete (HH:MM)<input type="time" id="pref-reminder"></label>
+        <button class="btn" type="submit">Salvar Preferências</button>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>Notificações Simuladas</h2>
+      <p>Alertas locais simples agendados para o horário configurado. O navegador precisa permanecer aberto.</p>
+      <button id="test-notify" class="btn outline">Testar alerta agora</button>
+      <ul id="notify-log" class="stack-sm" style="margin-top:var(--spacing-24); font-size:.85rem;"></ul>
+    </section>
+    <section class="panel" style="border-color:var(--danger);">
+      <h2>Modo Emergência</h2>
+      <p>Use em momentos de necessidade. Procure ajuda profissional.</p>
+      <button id="open-emergency" class="btn" style="--btn-bg:var(--danger);">Preciso de ajuda agora</button>
+    </section>
+  </main>
+  <footer>
+    <p>Este site não substitui atendimento profissional. Em caso de crise, ligue para CVV (188) ou procure um CAPS.</p>
+  </footer>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/ui.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const profileForm = document.getElementById('profile-form');
+      const prefsForm = document.getElementById('prefs-form');
+      const nameInput = document.getElementById('profile-name');
+      const avatarInput = document.getElementById('profile-avatar');
+      const preview = document.getElementById('profile-preview');
+      const prefLang = document.getElementById('pref-lang');
+      const prefContrast = document.getElementById('pref-high-contrast');
+      const prefColorBlind = document.getElementById('pref-color-blind');
+      const prefDarkMode = document.getElementById('pref-dark-mode');
+      const prefReminder = document.getElementById('pref-reminder');
+      const notifyLog = document.getElementById('notify-log');
+      const testNotify = document.getElementById('test-notify');
+
+      // Carregar dados
+      const profile = Storage.get('profile') || {}; 
+      if(profile.name) nameInput.value = profile.name;
+      if(profile.avatar) avatarInput.value = profile.avatar;
+      if(profile.name || profile.avatar) renderProfile();
+
+      const prefs = Storage.get('prefs') || {};
+      if(prefs.lang) prefLang.value = prefs.lang;
+      prefContrast.checked = !!prefs.highContrast;
+      prefColorBlind.checked = !!prefs.colorBlind;
+      prefDarkMode.checked = !!prefs.darkMode;
+      if(prefs.reminder) prefReminder.value = prefs.reminder;
+      applyPrefClasses();
+
+      profileForm.addEventListener('submit', e => {
+        e.preventDefault();
+        Storage.set('profile', { name: nameInput.value.trim(), avatar: avatarInput.value.trim() });
+        renderProfile();
+        UI.showToast('Perfil salvo');
+      });
+
+      prefsForm.addEventListener('submit', e => {
+        e.preventDefault();
+        Storage.set('prefs', { lang: prefLang.value, highContrast: prefContrast.checked, colorBlind: prefColorBlind.checked, darkMode: prefDarkMode.checked, reminder: prefReminder.value });
+        applyPrefClasses();
+        UI.showToast('Preferências salvas');
+        scheduleReminder();
+      });
+
+      testNotify.addEventListener('click', () => pushLocal('Alerta de teste: lembre-se de registrar seu humor.'));
+      document.getElementById('open-emergency').addEventListener('click', showEmergency);
+
+      function renderProfile(){
+        const { name, avatar } = Storage.get('profile') || {}; 
+        preview.innerHTML = name || avatar ? `<div style="display:flex; align-items:center; gap:12px;">`+
+          `<div style="font-size:2.5rem; line-height:1;">${avatar || '🙂'}</div>`+
+          `<div><strong>${name || 'Usuário'}</strong><br><small>ID local</small></div></div>` : '';
+      }
+
+      function applyPrefClasses(){
+        document.documentElement.classList.toggle('high-contrast', prefContrast.checked);
+        document.documentElement.classList.toggle('color-blind', prefColorBlind.checked);
+        document.documentElement.classList.toggle('dark-mode', prefDarkMode.checked);
+      }
+
+      function pushLocal(msg){
+        const li = document.createElement('li');
+        li.textContent = new Date().toLocaleTimeString() + ' - ' + msg;
+        notifyLog.prepend(li);
+        UI.showToast(msg);
+      }
+
+      function scheduleReminder(){
+        const prefs = Storage.get('prefs') || {}; if(!prefs.reminder) return;
+        const [h,m] = prefs.reminder.split(':').map(Number); if(isNaN(h)) return;
+        const now = new Date();
+        const target = new Date(); target.setHours(h,m,0,0);
+        if(target <= now) target.setDate(target.getDate()+1);
+        const ms = target - now;
+        pushLocal('Lembrete agendado para '+ target.toLocaleTimeString());
+        setTimeout(()=>{ pushLocal('Hora de registrar seu humor!'); scheduleReminder(); }, ms);
+      }
+      scheduleReminder();
+
+      function showEmergency(){
+        UI.showModal(`
+          <h3>Contatos de Ajuda</h3>
+          <ul style='list-style:disc; padding-left:1.2rem;'>
+            <li><strong>CVV:</strong> 188 (ligação gratuita 24h)</li>
+            <li><strong>CAPS:</strong> Procure unidade local – Ministério da Saúde</li>
+            <li><a href='https://cvv.org.br/' target='_blank'>cvv.org.br</a></li>
+            <li><a href='https://www.gov.br/saude/pt-br/assuntos/saude-mental' target='_blank'>Saúde Mental GOV</a></li>
+          </ul>
+        `);
+      }
+    });
+  </script>
+</body>
+</html>

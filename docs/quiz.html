@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Diário - MindQuiz</title>
+    <meta name="description" content="Responda o quiz diário no MindQuiz.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="diario.html">Diário</a>
+            <a href="quiz.html" class="active">Quiz</a>
+            <a href="tecnicas.html">Técnicas</a>
+            <a href="resultados.html">Resultados</a>
+        </nav>
+    </header>
+    <main>
+        <h1 style="margin-top:0;">Quiz Diário</h1>
+        <p style="max-width:640px;">Cinco perguntas rápidas para aferir aspectos de sono, estresse, foco, social e energia. Use isso como um radar pessoal simplificado.</p>
+        <div id="quiz-container" role="group" aria-live="polite">
+            <div id="question"></div>
+            <div id="options"></div>
+            <button id="next-btn" class="btn" disabled>Próxima</button>
+            <div id="progress">1/5</div>
+        </div>
+        <div id="result" style="display:none;">
+            <h2>Seu Resultado</h2>
+            <p id="score"></p>
+            <p id="feedback"></p>
+            <a href="tecnicas.html" class="btn outline">Ir para Técnicas</a>
+        </div>
+    </main>
+    <footer>
+        <p>Este site não substitui atendimento profissional. Em caso de crise, ligue para CVV (188) ou procure um CAPS.</p>
+    </footer>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/quiz.js"></script>
+</body>
+</html>

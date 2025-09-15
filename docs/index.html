@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindQuiz — Saúde Mental Interativa</title>
+    <meta name="description" content="MindQuiz: seu check-in de bem-estar. Registre seu humor, responda um quiz rápido e pratique técnicas que ajudam.">
+    <meta name="keywords" content="saúde mental, bem-estar, quiz, diário de humor, exercícios">
+    <meta property="og:title" content="MindQuiz — Saúde Mental Interativa">
+    <meta property="og:description" content="Registre seu humor, responda um quiz rápido e pratique técnicas que ajudam.">
+    <meta property="og:image" content="assets/img/logo.svg">
+    <meta property="og:url" content="https://seuusuario.github.io/mindquiz/">
+    <meta name="theme-color" content="#0D0F14">
+    <meta name="robots" content="index,follow">
+    <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        /* CSS crítico mínimo (fallback antes de app.css) */
+        body{margin:0;font-family:'Inter',sans-serif;background:#0D0F14;color:#fff}
+        .no-js-warning{background:#FF6B6B;color:#0D0F14;padding:8px 16px;text-align:center;font-size:.85rem}
+    </style>
+    <!-- Import das tokens antes do app.css (faltava, causando layout feio) -->
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+    <a href="#conteudo" class="skip-link">Pular para conteúdo</a>
+    <noscript><div class="no-js-warning">O MindQuiz funciona melhor com JavaScript habilitado.</div></noscript>
+    <header>
+        <nav>
+            <a href="index.html" class="active">Home</a>
+            <a href="diario.html">Diário</a>
+            <a href="quiz.html">Quiz</a>
+            <a href="tecnicas.html">Técnicas</a>
+            <a href="resultados.html">Resultados</a>
+            <a href="config.html">Config</a>
+            <button id="emergency-btn" class="btn outline" style="margin-left:auto;">⚠ Ajuda</button>
+        </nav>
+    </header>
+    <main id="conteudo" tabindex="-1">
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="panel" style="background:linear-gradient(145deg,var(--surface-alt),var(--surface)); max-width:980px; margin:0 auto;">
+                <img src="assets/img/logo.svg" alt="Logotipo MindQuiz" width="120" height="120" loading="lazy" style="filter:drop-shadow(0 6px 14px rgba(0,0,0,0.55)); margin-bottom:var(--spacing-24);" />
+                <h1 id="hero-title">MindQuiz — seu check-in de bem-estar</h1>
+                <p style="font-size:1.1rem; max-width:660px; margin:0 auto;">Registre humor, reflita rápido com um quiz leve e aplique técnicas práticas para respiração, foco e relaxamento. 100% local. Zero rastreamento.</p>
+                <div class="quick-mood" aria-label="Check-in rápido" style="margin-top:var(--spacing-24);">
+                    <button data-mood="1" aria-label="Muito mal" class="qm">😢</button>
+                    <button data-mood="2" aria-label="Mal" class="qm">🙁</button>
+                    <button data-mood="3" aria-label="Neutro" class="qm">😐</button>
+                    <button data-mood="4" aria-label="Bem" class="qm">😀</button>
+                    <button data-mood="5" aria-label="Muito bem" class="qm">🤩</button>
+                </div>
+                <div class="cta-row" role="group" aria-label="Ações principais">
+                    <a href="diario.html" class="btn" data-primary-cta>Começar Diário</a>
+                    <a href="quiz.html" class="btn outline">Fazer Quiz</a>
+                    <a href="tecnicas.html" class="btn subtle">Exercícios</a>
+                    <a href="resultados.html" id="go-results" class="btn" style="display:none;">Ver Resultados</a>
+                </div>
+                <div id="mini-stats" class="auto-grid" style="--min:160px; margin-top:var(--spacing-32); display:none;">
+                    <div class="card" style="padding:var(--spacing-16);">
+                        <h3 style="margin:0 0 4px; font-size:.85rem; letter-spacing:.08em; text-transform:uppercase;">Média 7d</h3>
+                        <p id="stat-media" style="margin:0; font-size:1.6rem; font-weight:700;">–</p>
+                    </div>
+                    <div class="card" style="padding:var(--spacing-16);">
+                        <h3 style="margin:0 0 4px; font-size:.85rem; letter-spacing:.08em; text-transform:uppercase;">Melhor</h3>
+                        <p id="stat-best" style="margin:0; font-size:1.1rem; font-weight:600;">–</p>
+                    </div>
+                    <div class="card" style="padding:var(--spacing-16);">
+                        <h3 style="margin:0 0 4px; font-size:.85rem; letter-spacing:.08em; text-transform:uppercase;">Tag Top</h3>
+                        <p id="stat-tag" style="margin:0; font-size:1.1rem; font-weight:600;">–</p>
+                    </div>
+                    <div class="card" style="padding:var(--spacing-16);">
+                        <h3 style="margin:0 0 4px; font-size:.85rem; letter-spacing:.08em; text-transform:uppercase;">Streak</h3>
+                        <p id="stat-streak" style="margin:0; font-size:1.6rem; font-weight:700;">–</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" id="como-funciona" aria-labelledby="como-title" style="margin-top:var(--spacing-64);">
+            <h2 id="como-title">Como funciona</h2>
+            <ol class="steps" style="--min:220px;" aria-label="Etapas">
+                <li><strong>Check-in rápido:</strong> 5 segundos para escolher nível de humor e opcionalmente tags + nota.</li>
+                <li><strong>Quiz reflexivo:</strong> perguntas simples que estimulam consciência emocional (sem avaliação clínica).</li>
+                <li><strong>Técnicas práticas:</strong> respiração 4-7-8, Pomodoro focado, alongamentos guiados.</li>
+                <li><strong>Insight visual:</strong> gráficos e linha do tempo para perceber padrões.</li>
+                <li><strong>Controle total:</strong> exporte ou limpe dados quando quiser.</li>
+            </ol>
+        </section>
+
+        <section id="inspiracao" class="panel" aria-labelledby="insp-title" style="margin-top:var(--spacing-64);">
+            <h2 id="insp-title">Mural de Inspiração</h2>
+            <blockquote id="motivation-quote" style="font-size:1.05rem; font-style:italic; margin:0 0 var(--spacing-24);"></blockquote>
+            <form id="add-quote-form" class="stack-sm" style="margin-top:var(--spacing-24);">
+                <label for="new-quote">Adicionar frase pessoal</label>
+                <input id="new-quote" type="text" maxlength="160" placeholder="Ex: Eu evoluo um pouco a cada dia">
+                <button class="btn" type="submit">Salvar frase</button>
+            </form>
+            <div id="saved-quotes" style="margin-top:var(--spacing-32);"></div>
+        </section>
+
+        <section class="stack-md" style="margin-top:var(--spacing-64);" aria-labelledby="destaques-title">
+            <h2 id="destaques-title" class="sr-only">Destaques</h2>
+            <div class="auto-grid" style="--min:260px;">
+                <div class="card">
+                    <h3>Privacidade Primeiro</h3>
+                    <p>Tudo salvo apenas no seu navegador via <code style="font-family:var(--font-mono); background:var(--surface-alt); padding:2px 6px; border-radius:4px; font-size:.75rem;">localStorage</code>.</p>
+                </div>
+                <div class="card">
+                    <h3>Rotina Saudável</h3>
+                    <p>Hábito leve: segundos para registrar, minutos para respirar melhor.</p>
+                </div>
+                <div class="card">
+                    <h3>Visualização Clara</h3>
+                    <p>Gráficos semanais e histórico de 14 dias em um clique.</p>
+                </div>
+                <div class="card">
+                    <h3>Técnicas Integradas</h3>
+                    <p>Timers e guiados simples que incentivam micro-pausas inteligentes.</p>
+                </div>
+                <div class="card">
+                    <h3>Exportação Fácil</h3>
+                    <p>Baixe um JSON com tudo para backup ou análise pessoal.</p>
+                </div>
+                <div class="card">
+                    <h3>ODS 3</h3>
+                    <p>Apoio à saúde mental acessível (ONU). <a href="https://www.who.int/health-topics/mental-disorders" target="_blank" rel="noopener">Saiba mais</a>.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="faq" class="panel" aria-labelledby="faq-title" style="margin-top:var(--spacing-64);">
+            <h2 id="faq-title">Perguntas Frequentes</h2>
+            <div class="faq">
+                <details>
+                    <summary>É um app médico?</summary>
+                    <p>Não. É uma ferramenta pessoal de auto-registro e apoio leve. Não substitui acompanhamento profissional.</p>
+                </details>
+                <details>
+                    <summary>Meus dados vão para algum servidor?</summary>
+                    <p>Não. Ficam apenas no seu dispositivo. Você pode limpar ou exportar.</p>
+                </details>
+                <details>
+                    <summary>Posso usar em celular?</summary>
+                    <p>Sim. Layout responsivo. Funciona offline após primeira visita (recursos estáticos).</p>
+                </details>
+                <details>
+                    <summary>Posso perder meus dados?</summary>
+                    <p>Se limpar cache/localStorage ou usar modo anônimo prolongado, pode perder. Recomende-se exportar periodicamente.</p>
+                </details>
+            </div>
+        </section>
+
+        <section id="roadmap" class="panel" aria-labelledby="roadmap-title" style="margin-top:var(--spacing-64);">
+            <h2 id="roadmap-title">Funcionalidades Recentes</h2>
+            <ul class="stack-sm" style="margin:0; padding-left:1.1rem;">
+                <li>✅ Perfil personalizado com avatar e configurações</li>
+                <li>✅ Sistema de notificações leves e agendadas</li>
+                <li>✅ Modo emergência com contatos de ajuda</li>
+                <li>✅ Mural de inspiração com frases rotativas</li>
+                <li>✅ Exportação CSV/PDF e compartilhamento de progresso</li>
+                <li>✅ Quiz expandido com mais perguntas</li>
+                <li>✅ Relatório semanal com insights detalhados</li>
+                <li>✅ Exercícios extras: diário guiado, meditações, gratidão</li>
+                <li>✅ Gamificação avançada com medalhas e ranking</li>
+                <li>✅ Estatísticas avançadas e análise de palavras</li>
+                <li>✅ Player de sons ambientes com volume control</li>
+                <li>✅ Respiração visual animada aprimorada</li>
+                <li>✅ Check-in rápido na home page</li>
+                <li>✅ Acessibilidade: daltônico, alto contraste, leitura em voz alta</li>
+                <li>✅ Atalhos de teclado para navegação e ações</li>
+                <li>✅ Ranking anônimo e compartilhamento de reflexões</li>
+                <li>Modo PWA (instalável)</li>
+                <li>Filtros por tag nos resultados</li>
+                <li>Notificações locais opcionais (lembrete de check-in)</li>
+                <li>Mais técnicas (body scan, respiração quadrada)</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>Este site não substitui atendimento profissional. Em caso de crise, ligue para CVV (188) ou procure um CAPS. Links: <a href="https://cvv.org.br/" target="_blank">CVV</a>, <a href="https://www.gov.br/saude/pt-br/assuntos/saude-mental" target="_blank">CAPS</a>.</p>
+        <p>Dados armazenados apenas no seu navegador (localStorage). Você pode apagar tudo a qualquer momento.</p>
+    </footer>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script>
+        // Mini estatísticas + sparkline na landing se houver dados
+        document.addEventListener('DOMContentLoaded', () => {
+            const mood = Storage.get('mood') || [];
+            if (!mood.length) return;
+            const last7 = mood.slice(-7);
+            const media = (last7.reduce((s,m)=>s+m.score,0)/ last7.length).toFixed(1);
+            const best = last7.reduce((a,b)=> b.score > a.score ? b : a, last7[0]);
+            const tags = {}; last7.forEach(m => (m.tags||[]).forEach(t => tags[t]=(tags[t]||0)+1));
+            const topTag = Object.keys(tags).sort((a,b)=> tags[b]-tags[a])[0];
+            document.getElementById('mini-stats').style.display='grid';
+            document.getElementById('stat-media').textContent = media;
+            document.getElementById('stat-best').textContent = `${best.score}`;
+            document.getElementById('stat-tag').textContent = topTag || '–';
+            // Calculate streak
+            let streak = 0;
+            const today = new Date();
+            for (let i = 0; i < 30; i++) { // check last 30 days
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                const entry = mood.find(m => m.date === dateStr);
+                if (entry) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            document.getElementById('stat-streak').textContent = streak;
+            const go = document.getElementById('go-results'); if (go) go.style.display='inline-flex';
+            // sparkline
+            const c = document.getElementById('sparkline'); if(!c) return; const ctx = c.getContext('2d');
+            ctx.clearRect(0,0,c.width,c.height);
+            const max = 5; const w = c.width; const h = c.height; const pad = 4; const step = (w - pad*2) / (last7.length -1);
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+            ctx.lineWidth = 2; ctx.beginPath();
+            last7.forEach((m,i)=>{ const x = pad + i*step; const y = h - pad - (m.score/max)*(h - pad*2); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+            ctx.stroke();
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            last7.forEach((m,i)=>{ const x = pad + i*step; const y = h - pad - (m.score/max)*(h - pad*2); ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill(); });
+            // Quick mood buttons
+            document.querySelectorAll('.quick-mood .qm').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const score = parseInt(btn.dataset.mood);
+                    const today = new Date().toISOString().split('T')[0];
+                    const entries = Storage.get('mood') || [];
+                    if(!entries.find(e=> e.date===today)) {
+                        entries.push({ date: today, score, tags: ['quick'], note: '' });
+                        Storage.set('mood', entries);
+                        UI.showToast('Humor rápido salvo: '+score);
+                        setTimeout(()=> location.href='resultados.html', 500);
+                    } else {
+                        UI.showToast('Já registrou hoje.');
+                    }
+                });
+            });
+            // Inspiration quotes
+            const baseQuotes = [
+                'Um passo de cada vez.','Respire, desacelere, continue.','Você já superou dias difíceis antes.',
+                'Pequenos hábitos constroem grandes mudanças.','Seja gentil consigo hoje.'
+            ];
+            const userQuotes = Storage.get('user_quotes') || [];
+            const all = baseQuotes.concat(userQuotes);
+            function rotateQuote(){
+                const q = all[Math.floor(Math.random()*all.length)];
+                const el = document.getElementById('motivation-quote');
+                if(el) el.textContent = '“'+q+'”';
+            }
+            rotateQuote(); setInterval(rotateQuote, 12000);
+            const form = document.getElementById('add-quote-form');
+            if(form){
+                form.addEventListener('submit', e => {
+                    e.preventDefault();
+                    const input = document.getElementById('new-quote');
+                    if(!input.value.trim()) return;
+                    userQuotes.push(input.value.trim());
+                    Storage.set('user_quotes', userQuotes);
+                    input.value='';
+                    UI.showToast('Frase salva');
+                });
+            }
+            // Emergency button
+            const emBtn = document.getElementById('emergency-btn');
+            if(emBtn){ emBtn.addEventListener('click', () => {
+                UI.showModal(`
+                   <h3>Preciso de Ajuda</h3>
+                   <p>Se estiver em crise procure ajuda imediatamente.</p>
+                   <ul style='list-style:disc; padding-left:1.1rem;'>
+                      <li><strong>CVV 188</strong> (24h)</li>
+                      <li><a href='https://cvv.org.br/' target='_blank'>cvv.org.br</a></li>
+                      <li><a href='https://www.gov.br/saude/pt-br/assuntos/saude-mental' target='_blank'>Saúde Mental GOV</a></li>
+                   </ul>`);
+            }); }
+        });
+    </script>
+    <script type="application/ld+json">{
+        "@context":"https://schema.org","@type":"WebSite","name":"MindQuiz","url":"https://seuusuario.github.io/mindquiz/","description":"Registre humor, faça um quiz leve e pratique técnicas de respiração e foco. 100% local."}
+    </script>
+</body>
+</html>

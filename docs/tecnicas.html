@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Técnicas - MindQuiz</title>
+    <meta name="description" content="Pratique técnicas de relaxamento no MindQuiz.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="diario.html">Diário</a>
+            <a href="quiz.html">Quiz</a>
+            <a href="tecnicas.html" class="active">Técnicas</a>
+            <a href="resultados.html">Resultados</a>
+        </nav>
+    </header>
+    <main>
+        <h1 style="margin-top:0;">Exercícios Rápidos</h1>
+        <p style="max-width:680px;">Use estas micro práticas para modular respiração, ritmo de trabalho e tensão muscular. Elas não substituem terapia profissional, mas ajudam a criar autoconsciência.</p>
+        <section id="breathing" class="panel" style="margin-top:var(--spacing-32);">
+            <h2>Respiração 4-7-8</h2>
+            <p>Inspire por 4s, segure por 7s, expire por 8s. 4 ciclos.</p>
+            <div style="text-align:center; margin: var(--spacing-24) 0;">
+                <canvas id="breath-canvas" width="200" height="200" style="border:2px solid var(--stroke); border-radius:50%;"></canvas>
+            </div>
+            <div id="timer-display">Pronto para começar</div>
+            <div class="stack-sm" style="margin-top:var(--spacing-16);">
+                <button id="start-breath" class="btn">Iniciar</button>
+                <button id="pause-breath" class="btn subtle">Pausar</button>
+                <button id="reset-breath" class="btn outline">Reset</button>
+            </div>
+        </section>
+        <section id="pomodoro" class="panel">
+            <h2>Pomodoro Rápido</h2>
+            <p>25 minutos de foco, 5 de pausa.</p>
+            <div id="pomodoro-timer">25:00</div>
+            <div class="stack-sm" style="margin-top:var(--spacing-16);">
+                <button id="start-pomo" class="btn">Iniciar</button>
+                <button id="pause-pomo" class="btn subtle">Pausar</button>
+                <button id="reset-pomo" class="btn outline">Reset</button>
+            </div>
+        </section>
+        <section id="stretches" class="panel">
+            <h2>Alongamentos</h2>
+            <div class="auto-grid" style="--min:260px;">
+                <div class="stretch-card">
+                    <img src="assets/img/icons/stretch.svg" alt="Ícone alongamento">
+                    <h3>Pescoço Lateral</h3>
+                    <p>Incline suavemente a cabeça para um lado, mantenha a postura ereta e respire profundo.</p>
+                    <button class="btn subtle">Timer 60s</button>
+                </div>
+                <div class="stretch-card">
+                    <img src="assets/img/icons/stretch.svg" alt="Ícone alongamento">
+                    <h3>Ombros</h3>
+                    <p>Eleve e gire os ombros para trás lentamente, liberando tensão acumulada.</p>
+                    <button class="btn subtle">Timer 60s</button>
+                </div>
+                <div class="stretch-card">
+                    <img src="assets/img/icons/stretch.svg" alt="Ícone alongamento">
+                    <h3>Coluna</h3>
+                    <p>Sentado, gire o tronco segurando o encosto da cadeira para alongar região torácica.</p>
+                    <button class="btn subtle">Timer 60s</button>
+                </div>
+            </div>
+        </section>
+        <section id="guided-journal" class="panel">
+            <h2>Diário Guiado</h2>
+            <p>Prompts para reflexão diária.</p>
+            <div id="journal-prompts">
+                <button class="btn" id="gratitude-btn">Exercício de Gratidão</button>
+                <button class="btn" id="reflection-btn">Reflexão Diária</button>
+            </div>
+            <div id="journal-output" style="margin-top: var(--spacing-16);"></div>
+        </section>
+        <section id="mini-meditation" class="panel">
+            <h2>Mini-Meditação</h2>
+            <p>2 minutos de meditação guiada.</p>
+            <div id="meditation-timer">2:00</div>
+            <button id="start-meditation" class="btn">Iniciar</button>
+            <div id="meditation-instructions" style="margin-top: var(--spacing-16);"></div>
+        </section>
+        <section id="sound-player" class="panel">
+            <h2>Player de Sons Ambiente</h2>
+            <p>Sons relaxantes para meditação ou foco.</p>
+            <div class="auto-grid" style="--min:200px;">
+                <div class="sound-card">
+                    <h3>🌧️ Chuva</h3>
+                    <audio id="rain-audio" loop>
+                        <source src="assets/audio/rain.mp3" type="audio/mpeg">
+                    </audio>
+                    <input type="range" id="rain-volume" min="0" max="1" step="0.1" value="0.5">
+                    <button class="btn" onclick="toggleSound('rain')">Play/Pause</button>
+                </div>
+                <div class="sound-card">
+                    <h3>🌊 Mar</h3>
+                    <audio id="ocean-audio" loop>
+                        <source src="assets/audio/ocean.mp3" type="audio/mpeg">
+                    </audio>
+                    <input type="range" id="ocean-volume" min="0" max="1" step="0.1" value="0.5">
+                    <button class="btn" onclick="toggleSound('ocean')">Play/Pause</button>
+                </div>
+                <div class="sound-card">
+                    <h3>🌲 Floresta</h3>
+                    <audio id="forest-audio" loop>
+                        <source src="assets/audio/forest.mp3" type="audio/mpeg">
+                    </audio>
+                    <input type="range" id="forest-volume" min="0" max="1" step="0.1" value="0.5">
+                    <button class="btn" onclick="toggleSound('forest')">Play/Pause</button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>Este site não substitui atendimento profissional. Em caso de crise, ligue para CVV (188) ou procure um CAPS.</p>
+    </footer>
+    <div id="toast" aria-live="polite" aria-atomic="true"></div>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/techniques.js"></script>
+</body>
+</html>

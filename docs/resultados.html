@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados - MindQuiz</title>
+    <meta name="description" content="Veja seus gráficos e histórico no MindQuiz.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+    <style media="print">
+        header, footer, nav, button { display: none !important; }
+        .panel { page-break-inside: avoid; }
+        canvas { page-break-inside: avoid; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="diario.html">Diário</a>
+            <a href="quiz.html">Quiz</a>
+            <a href="tecnicas.html">Técnicas</a>
+            <a href="resultados.html" class="active">Resultados</a>
+        </nav>
+    </header>
+    <main>
+        <h1 style="margin-top:0;">Gráficos e Histórico</h1>
+        <p style="max-width:700px;">Veja padrões dos últimos dias. Use as estatísticas para identificar gatilhos recorrentes e momentos de melhor estabilidade emocional.</p>
+        <section id="chart" class="panel" style="margin-top:var(--spacing-32);">
+            <h2>Gráfico Semanal de Humor</h2>
+            <canvas id="mood-chart" width="400" height="200"></canvas>
+            <h2 style="margin-top:var(--spacing-32);">Gráfico Mensal de Humor</h2>
+            <canvas id="monthly-chart" width="400" height="200"></canvas>
+        </section>
+        <section id="timeline" class="panel">
+            <h2>Linha do Tempo (Últimos 14 Dias)</h2>
+            <div id="timeline-container"></div>
+        </section>
+        <section id="ranking" class="panel">
+            <h2>Seu Ranking</h2>
+            <p>Baseado em consistência e engajamento (simulado).</p>
+            <div class="card">
+                <h3 id="ranking-title">Calculando...</h3>
+                <p id="ranking-desc">–</p>
+            </div>
+        </section>
+            <div class="auto-grid" style="--min:150px;">
+                <div class="card" id="streak-card">
+                    <h3>Sequência Atual</h3>
+                    <p style="font-size:2rem; font-weight:700; margin:0;" id="current-streak">–</p>
+                    <p style="margin:0; font-size:.8rem;">dias consecutivos</p>
+                </div>
+                <div class="card" id="medal-card">
+                    <h3>Medalhas</h3>
+                    <div id="medals" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+                </div>
+            </div>
+        </section>
+            <div class="auto-grid" style="--min:200px;">
+                <div class="card">
+                    <h3>Média semanal</h3>
+                    <p style="font-size:2rem; font-weight:700; margin:0;" id="avg">–</p>
+                </div>
+                <div class="card">
+                    <h3>Melhor dia</h3>
+                    <p style="font-size:1.1rem; font-weight:600; margin:0;" id="best">–</p>
+                </div>
+                <div class="card">
+                    <h3>Progresso Semanal</h3>
+                    <div style="width:100%; height:20px; background:var(--stroke); border-radius:10px; overflow:hidden;">
+                        <div id="weekly-progress" style="height:100%; background:var(--primary); width:0%; transition:width 0.5s;"></div>
+                    </div>
+                    <p style="margin:0; font-size:.8rem;" id="progress-text">–</p>
+                </div>
+            </div>
+            <div style="margin-top:var(--spacing-32); display:flex; flex-wrap:wrap; gap:var(--spacing-16);">
+                <button id="export-json-btn" class="btn">Exportar JSON</button>
+                <button id="export-csv-btn" class="btn">Exportar CSV</button>
+                <button id="export-pdf-btn" class="btn">Exportar PDF</button>
+                <button id="print-btn" class="btn outline">Imprimir</button>
+                <button id="weekly-report-btn" class="btn">Relatório Semanal</button>
+                <button id="share-chart-btn" class="btn">Compartilhar Progresso</button>
+                <button id="clear-btn" class="btn outline">Limpar Dados</button>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>Este site não substitui atendimento profissional. Em caso de crise, ligue para CVV (188) ou procure um CAPS.</p>
+    </footer>
+    <div id="toast" aria-live="polite" aria-atomic="true"></div>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/chart.js"></script>
+    <script src="assets/js/mood.js"></script>
+    <script src="assets/js/quiz.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Página de resultados: timeline, estatísticas, exportação e limpeza.
+        document.addEventListener('DOMContentLoaded', () => {
+            const moodData = Storage.get('mood') || [];
+            const quizData = Storage.get('quiz') || [];
+
+            // Timeline (últimos até 14 registros de humor, mais recente primeiro)
+            const last14 = moodData.slice(-14).reverse();
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+            last14.forEach(entry => {
+                const card = document.createElement('article');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.5rem;">
+                        <strong style="font-size:1rem;">${UI.formatDate(entry.date)}</strong>
+                        <span class="badge" style="background:var(--surface-accent); color:var(--text-primary); padding:.25rem .6rem; border-radius:var(--radius-full); font-weight:600;">${entry.score}</span>
+                    </div>
+                    <p style="margin:0; font-size:.85rem; line-height:1.4;">${(entry.tags||[]).join(', ') || '<em>sem tags</em>'}</p>
+                    ${entry.note ? `<p style=\"margin:.4rem 0 0; font-size:.75rem; opacity:.75;\">${entry.note}</p>` : ''}
+                `;
+                container.appendChild(card);
+            });
+
+            // Estatísticas (últimos 7)
+            const week = moodData.slice(-7);
+            if (week.length) {
+                const avg = week.reduce((s, m) => s + m.score, 0) / week.length;
+                document.getElementById('avg').textContent = avg.toFixed(1);
+                const best = week.reduce((a, b) => b.score > a.score ? b : a);
+                document.getElementById('best').textContent = `${UI.formatDate(best.date)} (${best.score})`;
+                const tagCount = {};
+                week.forEach(m => (m.tags||[]).forEach(t => tagCount[t] = (tagCount[t]||0)+1));
+                const topTag = Object.keys(tagCount).sort((a,b)=> tagCount[b]-tagCount[a])[0];
+                document.getElementById('triggers').textContent = topTag || '–';
+                
+                // Weekly progress
+                const progressPercent = (week.length / 7) * 100;
+                document.getElementById('weekly-progress').style.width = progressPercent + '%';
+                document.getElementById('progress-text').textContent = `${week.length}/7 dias registrados`;
+            }
+
+            // Gamificação: streak e medalhas
+            let streak = 0;
+            const today = new Date();
+            for (let i = 0; i < 365; i++) { // check last year
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                const entry = moodData.find(m => m.date === dateStr);
+                if (entry) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            document.getElementById('current-streak').textContent = streak;
+
+            // Medalhas
+            const medals = [];
+            if (streak >= 7) medals.push('🥉 7 dias');
+            if (streak >= 30) medals.push('🥈 30 dias');
+            if (streak >= 100) medals.push('🥇 100 dias');
+            if (moodData.length >= 50) medals.push('📊 50 registros');
+            if (quizData.length >= 10) medals.push('🧠 10 quizzes');
+            const medalsEl = document.getElementById('medals');
+            medalsEl.innerHTML = medals.map(m => `<span class="badge" style="background:var(--accent); color:white; padding:.25rem .5rem; border-radius:4px;">${m}</span>`).join('') || 'Nenhuma medalha ainda';
+
+            // Ranking
+            let ranking = 'Iniciante';
+            let desc = 'Continue registrando para subir no ranking!';
+            if (moodData.length > 50 && streak > 30) {
+                ranking = 'Mestre do Bem-Estar';
+                desc = 'Você está no top 5% de consistência!';
+            } else if (moodData.length > 20 && streak > 14) {
+                ranking = 'Especialista';
+                desc = 'Você está no top 15% de usuários dedicados!';
+            } else if (moodData.length > 10 && streak > 7) {
+                ranking = 'Avançado';
+                desc = 'Você está no top 30% de consistência!';
+            } else if (moodData.length > 5) {
+                ranking = 'Intermediário';
+                desc = 'Bom progresso! Mantenha a consistência.';
+            }
+            
+            document.getElementById('ranking-title').textContent = ranking;
+            document.getElementById('ranking-desc').textContent = desc;
+
+            // Exportar dados
+            document.getElementById('export-json-btn').addEventListener('click', () => {
+                const data = { mood: moodData, quiz: quizData };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'mindquiz-dados.json';
+                a.click();
+                UI.                UI.                    UI.showToast('Dados apagados');
+            });
+
+            // Exportar CSV
+            document.getElementById('export-csv-btn').addEventListener('click', () => {
+                let csv = 'Tipo,Data,Score,Tags,Nota\n';
+                moodData.forEach(entry => {
+                    csv += `Humor,${entry.date},${entry.score},"${(entry.tags||[]).join('; ')}","${entry.note||''}"\n`;
+                });
+                quizData.forEach(entry => {
+                    csv += `Quiz,${entry.date},${entry.score},"","${entry.answers.join('; ')}"\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'mindquiz-dados.csv';
+                a.click();
+                UI.showToast('CSV exportado!');
+            });
+
+            // Exportar PDF
+            document.getElementById('export-pdf-btn').addEventListener('click', () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.setFontSize(16);
+                doc.text('MindQuiz - Relatório de Dados', 20, 20);
+                doc.setFontSize(12);
+                let y = 40;
+                doc.text('Dados de Humor:', 20, y);
+                y += 10;
+                moodData.forEach(entry => {
+                    doc.text(`${entry.date}: Score ${entry.score}, Tags: ${(entry.tags||[]).join(', ')}, Nota: ${entry.note||''}`, 20, y);
+                    y += 10;
+                    if (y > 270) { doc.addPage(); y = 20; }
+                });
+                y += 10;
+                doc.text('Dados de Quiz:', 20, y);
+                y += 10;
+                quizData.forEach(entry => {
+                    doc.text(`${entry.date}: Score ${entry.score}`, 20, y);
+                    y += 10;
+                    if (y > 270) { doc.addPage(); y = 20; }
+                });
+                doc.save('mindquiz-relatorio.pdf');
+                UI.showToast('PDF exportado!');
+            });
+
+            // Imprimir
+            document.getElementById('print-btn').addEventListener('click', () => {
+                window.print();
+            });
+
+            // Relatório semanal
+            document.getElementById('weekly-report-btn').addEventListener('click', () => {
+                const week = moodData.slice(-7);
+                const quizWeek = quizData.slice(-7);
+                if (!week.length) {
+                    UI.showToast('Dados insuficientes para relatório');
+                    return;
+                }
+                const avg = week.reduce((s, m) => s + m.score, 0) / week.length;
+                const trend = week.length > 1 ? (week[week.length-1].score - week[0].score) : 0;
+                const topTag = {};
+                week.forEach(m => (m.tags||[]).forEach(t => topTag[t] = (topTag[t]||0)+1));
+                const mostCommonTag = Object.keys(topTag).sort((a,b)=> topTag[b]-topTag[a])[0];
+                
+                // Word frequency in notes
+                const words = {};
+                week.forEach(m => {
+                    if (m.note) {
+                        m.note.toLowerCase().split(/\s+/).forEach(w => {
+                            if (w.length > 3) words[w] = (words[w]||0)+1;
+                        });
+                    }
+                });
+                const topWords = Object.keys(words).sort((a,b)=> words[b]-words[a]).slice(0,3);
+                
+                const insights = [];
+                if (avg > 4) insights.push('Excelente semana! Continue mantendo essa energia positiva.');
+                else if (avg > 3) insights.push('Semana boa. Você está no caminho certo.');
+                else if (avg > 2) insights.push('Semana regular. Considere incorporar mais técnicas de relaxamento.');
+                else insights.push('Semana desafiadora. Lembre-se de buscar apoio se necessário.');
+                
+                if (trend > 1) insights.push('Tendência positiva! Seu humor melhorou ao longo da semana.');
+                else if (trend < -1) insights.push('Tendência de declínio. Identifique possíveis gatilhos.');
+                else insights.push('Humor estável durante a semana.');
+                
+                if (mostCommonTag) insights.push(`Você mencionou "${mostCommonTag}" frequentemente. Isso pode ser um gatilho importante.`);
+                
+                if (topWords.length) insights.push(`Palavras mais usadas nas notas: ${topWords.join(', ')}.`);
+                
+                if (quizWeek.length) {
+                    const avgQuiz = quizWeek.reduce((s, q) => s + q.score, 0) / quizWeek.length;
+                    insights.push(`Pontuação média no quiz: ${avgQuiz.toFixed(0)}. ${avgQuiz > 60 ? 'Bom autocuidado!' : 'Considere mais práticas de bem-estar.'}`);
+                }
+                
+                const report = `
+                    <h3>Relatório Semanal Detalhado</h3>
+                    <p><strong>Média de Humor:</strong> ${avg.toFixed(1)}/5</p>
+                    <p><strong>Tendência:</strong> ${trend > 0 ? 'Melhorando ↑' : trend < 0 ? 'Piorando ↓' : 'Estável →'}</p>
+                    <p><strong>Tag Mais Comum:</strong> ${mostCommonTag || 'Nenhuma'}</p>
+                    <h4>Insights Personalizados:</h4>
+                    <ul>${insights.map(i => `<li>${i}</li>`).join('')}</ul>
+                `;
+                UI.showModal(report);
+            });
+
+            // Compartilhar progresso
+            document.getElementById('share-chart-btn').addEventListener('click', () => {
+                const canvas = document.getElementById('mood-chart');
+                if (canvas) {
+                    canvas.toBlob(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'meu-progresso.png';
+                        a.click();
+                        UI.showToast('Imagem baixada! Compartilhe seu progresso.');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

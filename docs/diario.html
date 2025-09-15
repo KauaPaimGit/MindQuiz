@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diário de Humor - MindQuiz</title>
+    <meta name="description" content="Registre seu humor diário no MindQuiz.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/tokens.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="diario.html" class="active">Diário</a>
+            <a href="quiz.html">Quiz</a>
+            <a href="tecnicas.html">Técnicas</a>
+            <a href="resultados.html">Resultados</a>
+        </nav>
+    </header>
+    <main>
+        <h1 style="margin-top:0;">Diário de Humor</h1>
+        <p style="max-width:640px;">Faça um registro por dia. Use a escala, marque alguns fatores influenciadores e escreva uma nota se quiser. Isso ajuda a criar consciência emocional suave e progressiva.</p>
+        <form id="mood-form" aria-describedby="mood-desc">
+            <label for="mood-score">Como você se sente hoje? (1-5)</label>
+            <input type="range" id="mood-score" min="1" max="5" value="3" aria-describedby="mood-desc">
+            <span id="mood-desc">3 - Neutro</span>
+            <fieldset>
+                <legend>Tags (selecione até 3):</legend>
+                <label><input type="checkbox" name="tags" value="sono"> Sono</label>
+                <label><input type="checkbox" name="tags" value="estresse"> Estresse</label>
+                <label><input type="checkbox" name="tags" value="prazos"> Prazos</label>
+                <label><input type="checkbox" name="tags" value="social"> Social</label>
+                <label><input type="checkbox" name="tags" value="foco"> Foco</label>
+            </fieldset>
+            <label for="note">Nota opcional:</label>
+            <div style="position:relative;">
+                <textarea id="note" rows="3"></textarea>
+                <button type="button" id="speech-btn" style="position:absolute; top:5px; right:5px; background:none; border:none; font-size:1.2rem; cursor:pointer;" title="Falar nota">🎤</button>
+            </div>
+            <button type="submit" id="save-btn" class="btn">Salvar Hoje</button>
+            <button type="button" id="share-reflection-btn" class="btn outline">Compartilhar Reflexão</button>
+        </form>
+        <div id="toast" aria-live="polite" aria-atomic="true"></div>
+    </main>
+    <footer>
+        <p>Este site não substitui atendimento profissional. Em caso de crise, ligue para CVV (188) ou procure um CAPS.</p>
+    </footer>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/mood.js"></script>
+</body>
+</html>
